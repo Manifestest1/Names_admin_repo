@@ -31,24 +31,17 @@ const Dashboard = () => {
   return (
     <>
       <h1>Name</h1>
-      <div style={{ marginTop: '20px', display: 'flex' }}>
+      <div className="d-flex mt-4">
         <input type="text" placeholder="Search..." className="form-control" />
         <button
-          style={{
-            marginLeft: '10px',
-            padding: '8px 12px',
-            backgroundColor: '#007bff',
-            color: 'white',
-            border: 'none',
-            cursor: 'pointer',
-          }}
+          className="btn btn-primary ml-2"
           onClick={handleAddButtonClick}
         >
           Add
         </button>
       </div>
 
-      <table style={{ marginTop: '60px' }}>
+      <table className="table mt-4">
         <thead>
           <tr>
             <th>ID</th>
@@ -62,8 +55,8 @@ const Dashboard = () => {
               <td>{data.id}</td>
               <td>{data.name}</td>
               <td>
-                <button style={{ marginRight: '10px' }}>Edit</button>
-                <button>Delete</button>
+                <button className="btn btn-info mr-2">Edit</button>
+                <button className="btn btn-warning">Delete</button>
               </td>
             </tr>
           ))}
@@ -77,9 +70,9 @@ const Dashboard = () => {
           <form onSubmit={handleFormSubmit}>
             <label>
               Name:
-              <input type="text" value={name} onChange={handleNameChange} />
+              <input type="text" value={name} onChange={handleNameChange} className="form-control" />
             </label>
-            <input type="submit" value="Submit" style={{ marginTop: '10px', padding: '8px 12px', backgroundColor: '#007bff', color: 'white', border: 'none', cursor: 'pointer' }} />
+            <input type="submit" value="Submit" className="btn btn-primary mt-3" />
           </form>
         </div>
       )}
