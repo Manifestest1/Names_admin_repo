@@ -73,7 +73,7 @@ const Login = () => {
                     <CCol xs={6}>
                       {/* Replace '/dashboard' with the actual route of your dashboard */}
                       <Link to="/dashboard">
-                        <CButton color="info" className="px-4" onClick={handleLogin}>
+                        <CButton color="secondary" className="px-4" onClick={handleLogin}>
                           Login
                         </CButton>
                       </Link>
