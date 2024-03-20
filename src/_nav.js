@@ -29,7 +29,14 @@ const _nav = [
  
   {
     component: CNavItem,
-    name: 'Names',
+    name: 'GodNames',
+    to: '/godnames',
+    // Add other properties as needed
+  },
+
+  {
+    component: CNavItem,
+    name: 'AllNames',
     to: '/allnames',
     // Add other properties as needed
   }
