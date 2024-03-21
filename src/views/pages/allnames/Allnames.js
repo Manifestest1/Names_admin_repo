@@ -24,10 +24,11 @@ const Allnames = () => {
   const [editID, setEditID] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showAlert, setShowAlert] = useState(false);
-  const [serialNumbers, setSerialNumbers] = useState([]);
   // Add new state to manage the visibility of the pop-up window
   const [popupVisible, setPopupVisible] = useState(false);
   const [popupVisibleDelete, setPopupVisibleDelete] = useState(false);
+  const [pagesize,setPagesize] = useState(5);
+  const [paginationLinks, setPaginationLinks] = useState([]);
 
   useEffect(() => {
     fetchData();
@@ -36,15 +37,34 @@ const Allnames = () => {
   const fetchData = async () => {
     try {
       const headers = { 'Content-Type': 'application/json' };
-      const response = await axios.post('http://localhost:8000/api/show_names', { name }, { headers });
+      const response = await axios.get('http://localhost:8000/api/links', { pagesize }, { headers });
       setTableData(response.data);
+      setPaginationLinks(response.data.links);
       setIsLoading(false);
+      console.log(response.data,"Pagination List");
       // Update serial numbers based on the number of users
       setSerialNumbers(Array.from({ length: response.data.length }, (_, index) => index + 1));
     } catch (error) {
       console.error('Error fetching data:', error);
       setIsLoading(false);
     }
+  };
+
+  const handlePageClick = async (url) => {
+    try {
+      const response = await axios.get(url);
+      setTableData(response.data);
+      setPaginationLinks(response.data.links);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
+
+   // Calculate serial number based on current page and items per page
+   const calculateSerialNumber = (index) => {
+    const currentPage = tableData.current_page;
+    const itemsPerPage = tableData.per_page;
+    return (currentPage - 1) * itemsPerPage + index + 1;
   };
 
   const deleteData = async (idToDelete) => {
@@ -107,8 +127,6 @@ const Allnames = () => {
     setSearchQuery(e.target.value);
   };
 
-  const filteredData = tableData.filter(item => item.name.toLowerCase().includes(searchQuery.toLowerCase()));
-
   return (
     <>
       <h1>Name</h1>
@@ -129,9 +147,9 @@ const Allnames = () => {
             </CTableRow>
           </CTableHead>
           <CTableBody>
-            {filteredData.map((data, index) => (
+            {tableData.data.map((data, index) => (
               <CTableRow key={data.id}>
-                <CTableHeaderCell scope="row">{serialNumbers[index]}</CTableHeaderCell>
+                <CTableHeaderCell scope="row">{calculateSerialNumber(index)}</CTableHeaderCell>
                 <CTableDataCell>{data.name}</CTableDataCell>
                 <CTableDataCell>
                   <CButton style={{marginRight:'20px',backgroundColor:'rgb(102 16 242 / 41%)'}} className="mr-2" onClick={() => handleEditButtonClick(data.id)}>Edit</CButton>
@@ -142,6 +160,20 @@ const Allnames = () => {
           </CTableBody>
         </CTable>
       )}
+
+          <div style={{margin:'20px'}}>
+            {/* Render pagination links */}
+            {paginationLinks.map((link, index) => (
+              <CButton
+                key={index}
+                onClick={() => handlePageClick(link.url)}
+                disabled={!link.url} // Disable button if url is null
+                >
+                {/* Remove &laquo; and &raquo; symbols */}
+                {link.label.replace('&laquo;', '').replace('&raquo;', '')}
+              </CButton>
+            ))}
+          </div>
 
       <CModal
         visible={visible || popupVisible} // Update visibility based on state
