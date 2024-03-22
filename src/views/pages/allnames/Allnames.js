@@ -24,6 +24,7 @@ const Allnames = () => {
   const [editID, setEditID] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showAlert, setShowAlert] = useState(false);
+  const [serialNumbers, setSerialNumbers] = useState([]);
   // Add new state to manage the visibility of the pop-up window
   const [popupVisible, setPopupVisible] = useState(false);
   const [popupVisibleDelete, setPopupVisibleDelete] = useState(false);
@@ -37,8 +38,8 @@ const Allnames = () => {
   const fetchData = async () => {
     try {
       const headers = { 'Content-Type': 'application/json' };
-      const response = await axios.get('http://localhost:8000/api/links', { pagesize }, { headers });
-      setTableData(response.data);
+      const response = await axios.get('http://localhost:8000/api/links', { params: { pagesize }, headers });
+      setTableData(response.data); // Assuming response.data contains the table data
       setPaginationLinks(response.data.links);
       setIsLoading(false);
       console.log(response.data,"Pagination List");
@@ -47,6 +48,7 @@ const Allnames = () => {
     } catch (error) {
       console.error('Error fetching data:', error);
       setIsLoading(false);
+      setTableData([]); // Ensure tableData is set to an empty array in case of an error
     }
   };
 
@@ -88,7 +90,7 @@ const Allnames = () => {
   };
 
   const handleEditButtonClick = (id) => {
-    const itemToEdit = tableData.find(item => item.id === id);
+    const itemToEdit = tableData.data.find(item => item.id === id);
     setName(itemToEdit.name);
     setEditID(id);
     setVisible(true);
@@ -126,7 +128,9 @@ const Allnames = () => {
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
   };
+  const filteredData = Array.isArray(tableData.data) ? tableData.data.filter(item => item.name.toLowerCase().includes(searchQuery.toLowerCase())) : [];
 
+;
   return (
     <>
       <h1>Name</h1>
@@ -143,14 +147,16 @@ const Allnames = () => {
             <CTableRow>
               <CTableHeaderCell scope="col">Serial No.</CTableHeaderCell>
               <CTableHeaderCell scope="col">Name</CTableHeaderCell>
+              <CTableHeaderCell scope="col">discription</CTableHeaderCell>
               <CTableHeaderCell scope="col">Action</CTableHeaderCell>
             </CTableRow>
           </CTableHead>
           <CTableBody>
-            {tableData.data.map((data, index) => (
+            {filteredData.map((data, index) => (
               <CTableRow key={data.id}>
                 <CTableHeaderCell scope="row">{calculateSerialNumber(index)}</CTableHeaderCell>
                 <CTableDataCell>{data.name}</CTableDataCell>
+                <CTableDataCell></CTableDataCell>
                 <CTableDataCell>
                   <CButton style={{marginRight:'20px',backgroundColor:'rgb(102 16 242 / 41%)'}} className="mr-2" onClick={() => handleEditButtonClick(data.id)}>Edit</CButton>
                   <CButton color="secondary" onClick={() => deleteData(data.id)}>Delete</CButton>
@@ -161,19 +167,19 @@ const Allnames = () => {
         </CTable>
       )}
 
-          <div style={{margin:'20px'}}>
-            {/* Render pagination links */}
-            {paginationLinks.map((link, index) => (
-              <CButton
-                key={index}
-                onClick={() => handlePageClick(link.url)}
-                disabled={!link.url} // Disable button if url is null
-                >
-                {/* Remove &laquo; and &raquo; symbols */}
-                {link.label.replace('&laquo;', '').replace('&raquo;', '')}
-              </CButton>
-            ))}
-          </div>
+      <div style={{margin:'20px'}}>
+        {/* Render pagination links */}
+        {paginationLinks.map((link, index) => (
+          <CButton
+            key={index}
+            onClick={() => handlePageClick(link.url)}
+            disabled={!link.url} // Disable button if url is null
+          >
+            {/* Remove &laquo; and &raquo; symbols */}
+            {link.label.replace('&laquo;', '').replace('&raquo;', '')}
+          </CButton>
+        ))}
+      </div>
 
       <CModal
         visible={visible || popupVisible} // Update visibility based on state
