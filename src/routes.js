@@ -4,6 +4,7 @@ const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
 const Allnames = React.lazy(() => import('./views/pages/allnames/Allnames'))
 
 const Godnames = React.lazy(() => import('./views/pages/godnames/Godnames'))
+const Religion = React.lazy(() => import('./views/pages/religion/Religion'))
 
 
 
@@ -61,6 +62,7 @@ const routes = [
   { path: '/', exact: true, name: 'Home' },
   { path: '/dashboard', name: 'Dashboard', element: Dashboard },
   { path: '/allnames', name: 'Allnames', element: Allnames },
+  { path: '/religion', name: 'Religion', element: Religion },
   // { path: '/godlnames', name: 'Godnames', element: Godnames },
   {path:'/godnames', name:'Godnames',element: Godnames},
   { path: '/theme', name: 'Theme', element: Colors, exact: true },

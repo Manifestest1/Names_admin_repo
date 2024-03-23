@@ -36,6 +36,13 @@ const _nav = [
 
   {
     component: CNavItem,
+    name: 'Religion',
+    to: '/religion',
+    // Add other properties as needed
+  },
+
+  {
+    component: CNavItem,
     name: 'AllNames',
     to: '/allnames',
     // Add other properties as needed
