@@ -17,18 +17,17 @@ import {
 const Allnames = () => {
   const [visible, setVisible] = useState(false);
   const [visibleDelete, setVisibleDelete] = useState(false);
-
   const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
   const [tableData, setTableData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [editID, setEditID] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showAlert, setShowAlert] = useState(false);
   const [serialNumbers, setSerialNumbers] = useState([]);
-  // Add new state to manage the visibility of the pop-up window
   const [popupVisible, setPopupVisible] = useState(false);
   const [popupVisibleDelete, setPopupVisibleDelete] = useState(false);
-  const [pagesize,setPagesize] = useState(5);
+  const [pagesize, setPagesize] = useState(5);
   const [paginationLinks, setPaginationLinks] = useState([]);
 
   useEffect(() => {
@@ -37,18 +36,15 @@ const Allnames = () => {
 
   const fetchData = async () => {
     try {
-      const headers = { 'Content-Type': 'application/json' };
-      const response = await axios.get('http://localhost:8000/api/links', { params: { pagesize }, headers });
-      setTableData(response.data); // Assuming response.data contains the table data
+      const response = await axios.get(`http://localhost:8000/api/links?pagesize=${pagesize}`);
+      setTableData(response.data);
       setPaginationLinks(response.data.links);
       setIsLoading(false);
-      console.log(response.data,"Pagination List");
-      // Update serial numbers based on the number of users
       setSerialNumbers(Array.from({ length: response.data.length }, (_, index) => index + 1));
     } catch (error) {
       console.error('Error fetching data:', error);
       setIsLoading(false);
-      setTableData([]); // Ensure tableData is set to an empty array in case of an error
+      setTableData([]);
     }
   };
 
@@ -62,28 +58,23 @@ const Allnames = () => {
     }
   };
 
-   // Calculate serial number based on current page and items per page
-   const calculateSerialNumber = (index) => {
+  const calculateSerialNumber = (index) => {
     const currentPage = tableData.current_page;
     const itemsPerPage = tableData.per_page;
     return (currentPage - 1) * itemsPerPage + index + 1;
   };
 
   const deleteData = async (idToDelete) => {
-    // Show confirmation pop-up instead of using window.confirm
     setEditID(idToDelete);
     setPopupVisibleDelete(true);
   };
   
   const handleDeleteConfirmation = async () => {
     try {
-      const headers = { 'Content-Type': 'application/json' };
-      await axios.get(`http://localhost:8000/api/delete_names/${editID}`, { headers });
-      // Filter out the deleted item from tableData
+      await axios.delete(`http://localhost:8000/api/delete_names/${editID}`);
       setTableData(tableData.filter(item => item.id !== editID));
       setShowAlert(true);
-      // Close the pop-up modal after deletion
-      setPopupVisibleDelete(false); // Close the delete confirmation modal
+      setPopupVisibleDelete(false);
     } catch (error) {
       console.error('Error deleting data:', error);
     }
@@ -92,6 +83,7 @@ const Allnames = () => {
   const handleEditButtonClick = (id) => {
     const itemToEdit = tableData.data.find(item => item.id === id);
     setName(itemToEdit.name);
+    setDescription(itemToEdit.description);
     setEditID(id);
     setVisible(true);
   };
@@ -99,6 +91,7 @@ const Allnames = () => {
   const handleFormClose = () => {
     setVisible(false);
     setName('');
+    setDescription('');
     setEditID(null);
   };
 
@@ -106,19 +99,22 @@ const Allnames = () => {
     setName(e.target.value);
   };
 
+  const handleDescriptionChange = (e) => {
+    setDescription(e.target.value);
+  };
+
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     try {
-      const headers = { 'Content-Type': 'application/json' };
       if (editID) {
-        await axios.post(`http://localhost:8000/api/update_names/${editID}`, { name }, { headers });
-        fetchData();
+        await axios.put(`http://localhost:8000/api/update_names/${editID}`, { name, description });
       } else {
-        await axios.post(`http://localhost:8000/api/add_names`, { name }, { headers });
-        fetchData();
+        await axios.post(`http://localhost:8000/api/add_names`, { name, description });
       }
+      fetchData();
       setVisible(false);
       setName('');
+      setDescription('');
       setEditID(null);
     } catch (error) {
       console.error('Error updating name:', error);
@@ -128,9 +124,9 @@ const Allnames = () => {
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
   };
+
   const filteredData = Array.isArray(tableData.data) ? tableData.data.filter(item => item.name.toLowerCase().includes(searchQuery.toLowerCase())) : [];
 
-;
   return (
     <>
       <h1>Name</h1>
@@ -147,7 +143,7 @@ const Allnames = () => {
             <CTableRow>
               <CTableHeaderCell scope="col">Serial No.</CTableHeaderCell>
               <CTableHeaderCell scope="col">Name</CTableHeaderCell>
-              <CTableHeaderCell scope="col">discription</CTableHeaderCell>
+              <CTableHeaderCell scope="col">Description</CTableHeaderCell>
               <CTableHeaderCell scope="col">Action</CTableHeaderCell>
             </CTableRow>
           </CTableHead>
@@ -156,9 +152,9 @@ const Allnames = () => {
               <CTableRow key={data.id}>
                 <CTableHeaderCell scope="row">{calculateSerialNumber(index)}</CTableHeaderCell>
                 <CTableDataCell>{data.name}</CTableDataCell>
-                <CTableDataCell></CTableDataCell>
+                <CTableDataCell>{data.description}</CTableDataCell>
                 <CTableDataCell>
-                  <CButton style={{marginRight:'20px',backgroundColor:'rgb(102 16 242 / 41%)'}} className="mr-2" onClick={() => handleEditButtonClick(data.id)}>Edit</CButton>
+                  <CButton style={{ marginRight: '20px', backgroundColor: 'rgb(102 16 242 / 41%)' }} className="mr-2" onClick={() => handleEditButtonClick(data.id)}>Edit</CButton>
                   <CButton color="secondary" onClick={() => deleteData(data.id)}>Delete</CButton>
                 </CTableDataCell>
               </CTableRow>
@@ -167,27 +163,25 @@ const Allnames = () => {
         </CTable>
       )}
 
-      <div style={{margin:'20px'}}>
-        {/* Render pagination links */}
+      <div style={{ margin: '20px' }}>
         {paginationLinks.map((link, index) => (
           <CButton
             key={index}
             onClick={() => handlePageClick(link.url)}
-            disabled={!link.url} // Disable button if url is null
+            disabled={!link.url}
           >
-            {/* Remove &laquo; and &raquo; symbols */}
             {link.label.replace('&laquo;', '').replace('&raquo;', '')}
           </CButton>
         ))}
       </div>
 
       <CModal
-        visible={visible || popupVisible} // Update visibility based on state
-        onClose={() => { setVisible(false); setPopupVisible(false); }} // Close modal on cancel button click
+        visible={visible || popupVisible}
+        onClose={() => { setVisible(false); setPopupVisible(false); }}
         aria-labelledby="AddNameModal"
       >
         <CModalHeader closeButton>
-          <CModalTitle id="AddNameModal">Add Name</CModalTitle>
+          <CModalTitle id="AddNameModal">{editID ? 'Edit Name' : 'Add Name'}</CModalTitle>
         </CModalHeader>
         <CModalBody>
           <form onSubmit={handleFormSubmit}>
@@ -231,5 +225,3 @@ const Allnames = () => {
     </>
   );
 };
-
-export default Allnames;
