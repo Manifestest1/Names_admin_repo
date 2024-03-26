@@ -150,7 +150,7 @@ const Godnames = () => {
             <CTableRow>
               <CTableHeaderCell scope="col">Serial No.</CTableHeaderCell>
               <CTableHeaderCell scope="col">GodName</CTableHeaderCell>
-              <CTableHeaderCell scope="col">discription</CTableHeaderCell>
+              <CTableHeaderCell scope="col">description</CTableHeaderCell>
               <CTableHeaderCell scope="col">Action</CTableHeaderCell>
             </CTableRow>
           </CTableHead>

@@ -17,7 +17,8 @@ import {
 const Allnames = () => {
   const [visible, setVisible] = useState(false);
   const [visibleDelete, setVisibleDelete] = useState(false);
-
+  const [religions, setReligions] = useState([]);
+  const [selectedReligion, setSelectedReligion] = useState('');
   const [name, setName] = useState('');
   const [tableData, setTableData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -33,6 +34,7 @@ const Allnames = () => {
 
   useEffect(() => {
     fetchData();
+    fetchReligions();
   }, []);
 
   const fetchData = async () => {
@@ -50,6 +52,19 @@ const Allnames = () => {
       setIsLoading(false);
       setTableData([]); // Ensure tableData is set to an empty array in case of an error
     }
+  };
+
+  const fetchReligions = async () => {
+    try {
+      const response = await axios.get('http://localhost:8000/api/show_religion');
+      setReligions(response.data); // Assuming the API returns an array of religions
+    } catch (error) {
+      console.error('Error fetching religions:', error);
+    }
+  };
+
+  const handleReligionChange = (e) => {
+    setSelectedReligion(e.target.value);
   };
 
   const handlePageClick = async (url) => {
@@ -95,6 +110,7 @@ const Allnames = () => {
     const itemToEdit = tableData.data.find(item => item.id === id);
     setName(itemToEdit.name);
     setDescription(itemToEdit.description);
+    setSelectedReligion(itemToEdit.religion);
     setEditID(id);
     setVisible(true);
   };
@@ -103,12 +119,18 @@ const Allnames = () => {
     setVisible(false);
     setName('');
     setDescription('');
+    setSelectedReligion('')
     setEditID(null);
   };
 
   const handleNameChange = (e) => {
     setName(e.target.value);
   };
+
+  const handlReligionChange = (e) => {
+    setSelectedReligion(e.target.value);
+  };
+
   const handleDescriptionChange = (e) => {
     setDescription(e.target.value);
   };
@@ -118,15 +140,16 @@ const Allnames = () => {
     try {
       const headers = { 'Content-Type': 'application/json' };
       if (editID) {
-        await axios.post(`http://localhost:8000/api/update_names/${editID}`, { name, description }, { headers });
+        await axios.post(`http://localhost:8000/api/update_names/${editID}`, { name, description, religion: selectedReligion  }, { headers });
         fetchData();
       } else {
-        await axios.post(`http://localhost:8000/api/add_names`, { name, description }, { headers });
+        await axios.post(`http://localhost:8000/api/add_names`, { name, description, religion: selectedReligion }, { headers });
         fetchData();
       }
       setVisible(false);
       setName('');
       setDescription('');
+      setSelectedReligion('');
       setEditID(null);
     } catch (error) {
       console.error('Error updating name:', error);
@@ -154,7 +177,8 @@ const Allnames = () => {
             <CTableRow>
               <CTableHeaderCell scope="col">Serial No.</CTableHeaderCell>
               <CTableHeaderCell scope="col">Name</CTableHeaderCell>
-              <CTableHeaderCell scope="col">description</CTableHeaderCell>
+              <CTableHeaderCell scope="col">Description</CTableHeaderCell>
+              <CTableHeaderCell scope="col">Religion</CTableHeaderCell>
               <CTableHeaderCell scope="col">Action</CTableHeaderCell>
             </CTableRow>
           </CTableHead>
@@ -164,6 +188,7 @@ const Allnames = () => {
                 <CTableHeaderCell scope="row">{calculateSerialNumber(index)}</CTableHeaderCell>
                 <CTableDataCell>{data.name}</CTableDataCell>
                 <CTableDataCell>{data.description}</CTableDataCell>
+                <CTableDataCell>{data.religion}</CTableDataCell>
                 <CTableDataCell>
                   <CButton style={{marginRight:'20px',backgroundColor:'rgb(102 16 242 / 41%)'}} className="mr-2" onClick={() => handleEditButtonClick(data.id)}>Edit</CButton>
                   <CButton color="secondary" onClick={() => deleteData(data.id)}>Delete</CButton>
@@ -199,9 +224,20 @@ const Allnames = () => {
         <CModalBody>
           <form onSubmit={handleFormSubmit}>
             <label>
+              Religion:
+              <select value={selectedReligion} onChange={handleReligionChange}>
+                <option value="">Select a religion</option>
+                  {religions.map((religion) => (
+                    <option  value={religion.religion}>
+                    {religion.religion}
+                </option>
+        ))}
+      </select>
+            </label><br />
+            <label>
               Name:
               <input type="text" value={name} onChange={handleNameChange} className="form-control" />
-            </label>
+            </label><br />
             <label>
               Description:
               <input type="text" value={description} onChange={handleDescriptionChange} className="form-control" />
