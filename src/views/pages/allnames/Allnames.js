@@ -228,7 +228,7 @@ const Allnames = () => {
               <select value={selectedReligion} onChange={handleReligionChange}>
                 <option value="">Select a religion</option>
                   {religions.map((religion) => (
-                    <option  key={religion.religion_id} value={religion.id}>
+                    <option  key={religion.id} value={religion.id}>
                     {religion.religion}
                 </option>
         ))}
