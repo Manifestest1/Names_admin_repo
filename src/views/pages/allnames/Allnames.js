@@ -140,10 +140,10 @@ const Allnames = () => {
     try {
       const headers = { 'Content-Type': 'application/json' };
       if (editID) {
-        await axios.post(`http://localhost:8000/api/update_names/${editID}`, { name, description, religion: selectedReligion  }, { headers });
+        await axios.post(`http://localhost:8000/api/update_names/${editID}`, { name, description, religion_id: selectedReligion  }, { headers });
         fetchData();
       } else {
-        await axios.post(`http://localhost:8000/api/add_names`, { name, description, religion: selectedReligion }, { headers });
+        await axios.post(`http://localhost:8000/api/add_names`, { name, description, religion_id: selectedReligion }, { headers });
         fetchData();
       }
       setVisible(false);
@@ -228,7 +228,7 @@ const Allnames = () => {
               <select value={selectedReligion} onChange={handleReligionChange}>
                 <option value="">Select a religion</option>
                   {religions.map((religion) => (
-                    <option  value={religion.religion}>
+                    <option  key={religion.religion_id} value={religion.religion_id}>
                     {religion.religion}
                 </option>
         ))}
