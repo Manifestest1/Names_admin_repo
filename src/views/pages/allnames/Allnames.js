@@ -19,6 +19,8 @@ const Allnames = () => {
   const [visibleDelete, setVisibleDelete] = useState(false);
   const [religions, setReligions] = useState([]);
   const [selectedReligion, setSelectedReligion] = useState('');
+  const [gender, setGender] = useState([]);
+  const [selectedGender, setSelectedGender] = useState('');
   const [name, setName] = useState('');
   const [tableData, setTableData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -109,8 +111,9 @@ const Allnames = () => {
   const handleEditButtonClick = (id) => {
     const itemToEdit = tableData.data.find(item => item.id === id);
     setName(itemToEdit.name);
-    setDescription(itemToEdit.description);
-    setSelectedReligion(itemToEdit.religion);
+    setDescription(itemToEdit.description); 
+    setSelectedReligion(itemToEdit.religion.id);
+    setSelectedGender(itemToEdit.gender);
     setEditID(id);
     setVisible(true);
   };
@@ -119,7 +122,8 @@ const Allnames = () => {
     setVisible(false);
     setName('');
     setDescription('');
-    setSelectedReligion('')
+    setSelectedReligion('');
+    setSelectedGender('');
     setEditID(null);
   };
 
@@ -135,27 +139,31 @@ const Allnames = () => {
     setDescription(e.target.value);
   };
 
+  const handleGenderChange = (e) => {
+    setSelectedGender(e.target.value);
+  };
+
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     try {
       const headers = { 'Content-Type': 'application/json' };
       if (editID) {
-        await axios.post(`http://localhost:8000/api/update_names/${editID}`, { name, description, religion: selectedReligion  }, { headers });
-        fetchData();
+        await axios.post(`http://localhost:8000/api/update_names/${editID}`, { name, description, religion: selectedReligion, gender: selectedGender  }, { headers });
+
       } else {
-        await axios.post(`http://localhost:8000/api/add_names`, { name, description, religion: selectedReligion }, { headers });
-        fetchData();
+        await axios.post(`http://localhost:8000/api/add_names`, { name, description, religion: selectedReligion, gender: selectedGender  }, { headers });
       }
+      fetchData();
       setVisible(false);
       setName('');
       setDescription('');
       setSelectedReligion('');
+      setSelectedGender('');
       setEditID(null);
     } catch (error) {
       console.error('Error updating name:', error);
     }
   };
-
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
   };
@@ -179,6 +187,7 @@ const Allnames = () => {
               <CTableHeaderCell scope="col">Name</CTableHeaderCell>
               <CTableHeaderCell scope="col">Description</CTableHeaderCell>
               <CTableHeaderCell scope="col">Religion</CTableHeaderCell>
+              <CTableHeaderCell scope="col">Gender</CTableHeaderCell>
               <CTableHeaderCell scope="col">Action</CTableHeaderCell>
             </CTableRow>
           </CTableHead>
@@ -189,6 +198,7 @@ const Allnames = () => {
                 <CTableDataCell>{data.name}</CTableDataCell>
                 <CTableDataCell>{data.description}</CTableDataCell>
                 <CTableDataCell>{data.religion}</CTableDataCell>
+                <CTableDataCell>{data.gender}</CTableDataCell>
                 <CTableDataCell>
                   <CButton style={{marginRight:'20px',backgroundColor:'rgb(102 16 242 / 41%)'}} className="mr-2" onClick={() => handleEditButtonClick(data.id)}>Edit</CButton>
                   <CButton color="secondary" onClick={() => deleteData(data.id)}>Delete</CButton>
@@ -222,22 +232,35 @@ const Allnames = () => {
           <CModalTitle id="AddNameModal">Add Name</CModalTitle>
         </CModalHeader>
         <CModalBody>
-          <form onSubmit={handleFormSubmit}>
-            <label>
-              Religion:
-              <select value={selectedReligion} onChange={handleReligionChange}>
-                <option value="">Select a religion</option>
-                  {religions.map((religion) => (
-                    <option  key={religion.id} value={religion.id}>
-                    {religion.religion}
-                </option>
-        ))}
-      </select>
-            </label><br />
-            <label>
+          <form id='forms' onSubmit={handleFormSubmit}>
+          <label>
               Name:
               <input type="text" value={name} onChange={handleNameChange} className="form-control" />
+            </label><br /><br />
+
+            <label>
+              Gender:
+              <select value={selectedGender} onChange={handleGenderChange}>
+                {editID === null && <option value="">Select a gender</option>}
+                <option key="gender" value="male">Male</option>
+                <option key="gender" value="female">Female</option>
+                <option key="gender" value="unisex">unisex</option>
+              </select>
+            </label><br /><br />
+            
+
+          <label>
+              Religion:
+              <select value={selectedReligion} onChange={handleReligionChange}>
+                {editID === null && <option value="">Select a religion</option>}
+                {religions.map((religion) => (
+                  <option key={religion.id} value={religion.id}>
+                    {religion.religion}
+                  </option>
+                ))}
+              </select>
             </label><br />
+            
             <label>
               Description:
               <input type="text" value={description} onChange={handleDescriptionChange} className="form-control" />
