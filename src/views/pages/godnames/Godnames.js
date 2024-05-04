@@ -78,7 +78,8 @@ const Godnames = () => {
       const headers = { 'Content-Type': 'application/json' };
       await axios.get(`http://localhost:8000/api/delete_godnames/${editID}`, { headers });
       // Filter out the deleted item from tableData
-      setTableData(tableData.filter(item => item.id !== editID));
+      const newData = tableData.data.filter(item => item.id !== editID);
+      setTableData({ ...tableData, data: newData });
       setShowAlert(true);
       // Close the pop-up modal after deletion
       setPopupVisibleDelete(false); // Close the delete confirmation modal
