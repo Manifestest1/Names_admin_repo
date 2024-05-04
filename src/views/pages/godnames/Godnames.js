@@ -34,10 +34,6 @@ const Godnames = () => {
   useEffect(() => {
     fetchData();
   }, []);
- 
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   const fetchData = async () => {
     try {
@@ -92,7 +88,7 @@ const Godnames = () => {
   };
 
   const handleEditButtonClick = (id) => {
-    const itemToEdit = tableData.find(item => item.id === id);
+    const itemToEdit = tableData.data.find(item => item.id === id);
     setName(itemToEdit.godname);
     setEditID(id);
     setVisible(true);
@@ -195,7 +191,7 @@ const Godnames = () => {
           <CModalTitle id="AddNameModal">Add GodName</CModalTitle>
         </CModalHeader>
         <CModalBody>
-          <form onSubmit={handleFormSubmit}>
+          <form  onSubmit={handleFormSubmit}>
             <label>
               Name:
               <input type="text" value={name} onChange={handleNameChange} className="form-control" />

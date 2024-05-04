@@ -12,6 +12,10 @@ import {
   CTableHeaderCell, 
   CTableBody, 
   CTableDataCell,
+  CDropdown,
+  CDropdownToggle,
+  CDropdownMenu,
+  CDropdownItem
 } from '@coreui/react';
 
 const Allnames = () => {
@@ -240,26 +244,34 @@ const Allnames = () => {
 
             <label>
               Gender:
-              <select value={selectedGender} onChange={handleGenderChange}>
-                {editID === null && <option value="">Select a gender</option>}
-                <option key="gender" value="male">Male</option>
-                <option key="gender" value="female">Female</option>
-                <option key="gender" value="unisex">unisex</option>
-              </select>
+              <CDropdown>
+                <CDropdownToggle color="secondary">
+                  {selectedGender ? selectedGender : 'Select a gender'}
+                </CDropdownToggle>
+                <CDropdownMenu>
+                  <CDropdownItem onClick={() => setSelectedGender('male')}>Male</CDropdownItem>
+                  <CDropdownItem onClick={() => setSelectedGender('female')}>Female</CDropdownItem>
+                  <CDropdownItem onClick={() => setSelectedGender('unisex')}>Unisex</CDropdownItem>
+                </CDropdownMenu>
+              </CDropdown>
             </label><br /><br />
             
-
-          <label>
+            <label>
               Religion:
-              <select value={selectedReligion} onChange={handleReligionChange}>
-                {editID === null && <option value="">Select a religion</option>}
-                {religions.map((religion) => (
-                  <option key={religion.id} value={religion.id}>
-                    {religion.religion}
-                  </option>
-                ))}
-              </select>
+              <CDropdown>
+                <CDropdownToggle color="secondary">
+                {selectedReligion && religions.find(religion => religion.id === selectedReligion) ? (religions.find(religion => religion.id === selectedReligion)?.religion || 'Select a religion') : 'Select a religion'}
+                </CDropdownToggle>
+                <CDropdownMenu>
+                  {religions.map((religion) => (
+                    <CDropdownItem  onClick={() => setSelectedReligion(religion.id)}>
+                      {religion.religion}
+                    </CDropdownItem>
+                  ))}
+                </CDropdownMenu>
+              </CDropdown>
             </label><br />
+
             
             <label>
               Description:
