@@ -20,6 +20,7 @@ const AppHeaderDropdown = () => {
     const token = localStorage.getItem('_token');
     if (!token) {
       console.error("Token not found");
+      navigate("/login");
       return;
     }
   
@@ -39,6 +40,14 @@ const AppHeaderDropdown = () => {
         // Handle specific errors (e.g., 401) here
       });
   };
+
+  useEffect(() => {
+    const token = localStorage.getItem('_token');
+    if (!token) {
+      console.error("Token not found");
+      navigate("/login");
+    }
+  }, []);
   
 
   return (
