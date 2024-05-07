@@ -1,40 +1,38 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom'; // Import Link
-import {
-  CButton,
-  CCard,
-  CCardBody,
-  CCol,
-  CContainer,
-  CForm,
-  CFormInput,
-  CInputGroup,
-  CInputGroupText,
-  CRow,
-} from '@coreui/react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { CButton, CCard, CCardBody, CCol, CContainer, CForm, CFormInput, CInputGroup, CInputGroupText, CRow } from '@coreui/react';
 import CIcon from '@coreui/icons-react';
 import { cilLockLocked, cilUser } from '@coreui/icons';
-import axios from 'axios';
-import { Navigate, Route, Routes } from 'react-router-dom'
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
-  const handleLogin = () => {
-    console.log(email, password, 'data');
-    const headers = { 'Content-Type': 'application/json' };
-    axios
-      .post('http://localhost:8000/api/auth/login', { email, password, headers })
-      .then(response => {
-        console.log(response, 'api data');
-        <Route path="/" element={<Navigate to="dashboard" replace />} />
-      })
-      .catch(error => {
-        console.error('Error during login:', error);
-        setError('An unexpected error occurred');
-      });
+  useEffect(() => {
+    // Check if user is already logged in
+    const token = localStorage.getItem('_token');
+    if (token) {
+      navigate('/dashboard'); // Redirect to dashboard if logged in
+    }
+  }, [navigate]);
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+      const headers = { 'Content-Type': 'application/json' };
+      const response = await axios.post('http://localhost:8000/api/auth/login', { email, password }, { headers });
+      console.log(response.data, 'api data');
+      if (response.data.authorisation.token) {
+        localStorage.setItem('_token', response.data.authorisation.token);
+        navigate('/dashboard');
+      }
+    } catch (error) {
+      console.error('Error during login:', error);
+      setError('Please send a valid email and password');
+    }
   };
 
   return (
@@ -69,16 +67,10 @@ const Login = () => {
                       onChange={e => setPassword(e.target.value)}
                     />
                   </CInputGroup>
-                  <CRow>
-                    <CCol xs={6}>
-                      {/* Replace '/dashboard' with the actual route of your dashboard */}
-                      <Link to="/dashboard">
-                        <CButton color="secondary" className="px-4" onClick={handleLogin}>
-                          Login
-                        </CButton>
-                      </Link>
-                    </CCol>
-                  </CRow>
+                  <CButton color="secondary" className="px-4" onClick={handleLogin}>
+                    Login
+                  </CButton>
+                  {error && <p className="text-danger">{error}</p>}
                 </CForm>
               </CCardBody>
             </CCard>
@@ -90,3 +82,4 @@ const Login = () => {
 };
 
 export default Login;
+

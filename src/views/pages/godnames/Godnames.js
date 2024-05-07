@@ -147,7 +147,6 @@ const Godnames = () => {
             <CTableRow>
               <CTableHeaderCell scope="col">Serial No.</CTableHeaderCell>
               <CTableHeaderCell scope="col">GodName</CTableHeaderCell>
-              <CTableHeaderCell scope="col">description</CTableHeaderCell>
               <CTableHeaderCell scope="col">Action</CTableHeaderCell>
             </CTableRow>
           </CTableHead>
@@ -156,7 +155,6 @@ const Godnames = () => {
               <CTableRow key={data.id}>
                 <CTableHeaderCell scope="row">{calculateSerialNumber(index)}</CTableHeaderCell>
                 <CTableDataCell>{data.godname}</CTableDataCell>
-                <CTableDataCell></CTableDataCell>
                 <CTableDataCell>
                   <CButton style={{marginRight:'20px',backgroundColor:'rgb(102 16 242 / 41%)'}} className="mr-2" onClick={() => handleEditButtonClick(data.id)}>Edit</CButton>
                   <CButton color="secondary" onClick={() => deleteData(data.id)}>Delete</CButton>

@@ -168,6 +168,7 @@ const Allnames = () => {
       console.error('Error updating name:', error);
     }
   };
+  
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
   };
