@@ -12,6 +12,10 @@ import {
   CTableHeaderCell, 
   CTableBody, 
   CTableDataCell,
+  CDropdown,
+  CDropdownToggle,
+  CDropdownMenu,
+  CDropdownItem
 } from '@coreui/react';
 
 const Allnames = () => {
@@ -19,6 +23,7 @@ const Allnames = () => {
   const [visibleDelete, setVisibleDelete] = useState(false);
   const [religions, setReligions] = useState([]);
   const [selectedReligion, setSelectedReligion] = useState('');
+  const [selectedReligionName, setSelectedReligionName] = useState('');
   const [gender, setGender] = useState([]);
   const [selectedGender, setSelectedGender] = useState('');
   const [name, setName] = useState('');
@@ -36,6 +41,9 @@ const Allnames = () => {
 
   useEffect(() => {
     fetchData();
+  }, []);
+
+  useEffect(() => {
     fetchReligions();
   }, []);
 
@@ -59,7 +67,7 @@ const Allnames = () => {
   const fetchReligions = async () => {
     try {
       const response = await axios.get('http://localhost:8000/api/show_religion');
-      setReligions(response.data); // Assuming the API returns an array of religions
+      setReligions(response.data,"all Rel"); // Assuming the API returns an array of religions
     } catch (error) {
       console.error('Error fetching religions:', error);
     }
@@ -110,10 +118,12 @@ const Allnames = () => {
 
   const handleEditButtonClick = (id) => {
     const itemToEdit = tableData.data.find(item => item.id === id);
+    console.log(itemToEdit,"Religin id");
     setName(itemToEdit.name);
     setDescription(itemToEdit.description); 
-    setSelectedReligion(itemToEdit.religion.id);
+    setSelectedReligion(itemToEdit.religion_id);
     setSelectedGender(itemToEdit.gender);
+    setSelectedReligionName(itemToEdit.religion);
     setEditID(id);
     setVisible(true);
   };
@@ -150,7 +160,8 @@ const Allnames = () => {
       if (editID) {
         await axios.post(`http://localhost:8000/api/update_names/${editID}`, { name, description, religion: selectedReligion, gender: selectedGender  }, { headers });
 
-      } else {
+      } 
+      else {
         await axios.post(`http://localhost:8000/api/add_names`, { name, description, religion: selectedReligion, gender: selectedGender  }, { headers });
       }
       fetchData();
@@ -161,7 +172,7 @@ const Allnames = () => {
       setSelectedGender('');
       setEditID(null);
     } catch (error) {
-      console.error('Error updating name:', error);
+      console.error('Error updating name:', error.response.data);
     }
   };
   const handleSearchChange = (e) => {
@@ -233,45 +244,55 @@ const Allnames = () => {
         </CModalHeader>
         <CModalBody>
           <form id='forms' onSubmit={handleFormSubmit}>
-          <label>
-              Name:
+          <label>Name:</label>
               <input type="text" value={name} onChange={handleNameChange} className="form-control" />
-            </label><br /><br />
-
-            <label>
-              Gender:
-              <select value={selectedGender} onChange={handleGenderChange}>
-                {editID === null && <option value="">Select a gender</option>}
-                <option key="gender" value="male">Male</option>
-                <option key="gender" value="female">Female</option>
-                <option key="gender" value="unisex">unisex</option>
-              </select>
-            </label><br /><br />
-            
-
-          <label>
-              Religion:
-              <select value={selectedReligion} onChange={handleReligionChange}>
-                {editID === null && <option value="">Select a religion</option>}
+            <br /><br />
+            <label>Gender:</label><br></br>
+              <CDropdown className="col-md-12 form-control">
+                <CDropdownToggle style = {{textAlign:"left"}}>
+                  {selectedGender ? selectedGender : 'Select a gender'}
+               
+                  <CDropdownMenu >
+                  <CDropdownItem onClick={() => setSelectedGender('male')}>Male</CDropdownItem>
+                  <CDropdownItem onClick={() => setSelectedGender('female')}>Female</CDropdownItem>
+                  <CDropdownItem onClick={() => setSelectedGender('unisex')}>Unisex</CDropdownItem>
+                </CDropdownMenu>
+                </CDropdownToggle>
+              </CDropdown>
+            <br /><br />
+            <label>Religion:</label>
+            <CDropdown className="col-md-12 form-control">
+              <CDropdownToggle style={{ textAlign: "left" }}>
+                {selectedReligion ? selectedReligionName : 'Select a religion'}
+              </CDropdownToggle>
+              <CDropdownMenu>
                 {religions.map((religion) => (
-                  <option key={religion.id} value={religion.id}>
+                  <CDropdownItem
+                    key={religion.id}
+                    onClick={() => {
+                      setSelectedReligion(religion.id); // Set the selected religion ID
+                      setSelectedReligionName(religion.religion); // Set the selected religion name
+                    }}
+                  >
                     {religion.religion}
-                  </option>
+                  </CDropdownItem>
                 ))}
-              </select>
-            </label><br />
+              </CDropdownMenu>
+            </CDropdown>
+            <br />
             
-            <label>
-              Description:
+
+            <label> Description:</label> 
+             
               <input type="text" value={description} onChange={handleDescriptionChange} className="form-control" />
-            </label>
+            
             <div className="row justify-content-end mt-3">
               <div className="col-auto">
               <CButton type="submit" style={{backgroundColor:'rgb(102 16 242 / 41%)'}}>{editID ? 'Save' : 'Submit'}</CButton>
 
               </div>
               <div className="col-auto">
-                <CButton color="secondary" onClick={() => { setVisible(false); setPopupVisible(false); }}>Close</CButton>
+                <CButton color="secondary" onClick={() => { setVisible(false); setPopupVisible(false);setName('');setDescription('');setSelectedReligion('');setSelectedGender(''); }}>Close</CButton>
               </div>
             </div>
           </form>

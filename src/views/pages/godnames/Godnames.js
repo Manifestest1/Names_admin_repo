@@ -34,10 +34,6 @@ const Godnames = () => {
   useEffect(() => {
     fetchData();
   }, []);
- 
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   const fetchData = async () => {
     try {
@@ -82,7 +78,8 @@ const Godnames = () => {
       const headers = { 'Content-Type': 'application/json' };
       await axios.get(`http://localhost:8000/api/delete_godnames/${editID}`, { headers });
       // Filter out the deleted item from tableData
-      setTableData(tableData.filter(item => item.id !== editID));
+      const newData = tableData.data.filter(item => item.id !== editID);
+      setTableData({ ...tableData, data: newData });
       setShowAlert(true);
       // Close the pop-up modal after deletion
       setPopupVisibleDelete(false); // Close the delete confirmation modal
@@ -92,7 +89,7 @@ const Godnames = () => {
   };
 
   const handleEditButtonClick = (id) => {
-    const itemToEdit = tableData.find(item => item.id === id);
+    const itemToEdit = tableData.data.find(item => item.id === id);
     setName(itemToEdit.godname);
     setEditID(id);
     setVisible(true);
@@ -112,10 +109,14 @@ const Godnames = () => {
     e.preventDefault();
     try {
       const headers = { 'Content-Type': 'application/json' };
-      if (editID) {
+      if (editID) 
+      {
         await axios.post(`http://localhost:8000/api/update_godnames/${editID}`, { name }, { headers });
         fetchData();
-      } else {
+      } 
+      else 
+      {
+        setName('');
         await axios.post(`http://localhost:8000/api/add_godnames`, { name }, { headers });
         fetchData();
       }
@@ -171,7 +172,6 @@ const Godnames = () => {
           </CTableBody>
         </CTable>
       )}
-
           <div style={{margin:'20px'}}>
             {/* Render pagination links */}
             {paginationLinks.map((link, index) => (
@@ -192,10 +192,10 @@ const Godnames = () => {
         aria-labelledby="AddNameModal"
       >
         <CModalHeader closeButton>
-          <CModalTitle id="AddNameModal">Add GodName</CModalTitle>
+          <CModalTitle id="AddNameModal">Add GodName</CModalTitle> 
         </CModalHeader>
         <CModalBody>
-          <form onSubmit={handleFormSubmit}>
+          <form  onSubmit={handleFormSubmit}>
             <label>
               Name:
               <input type="text" value={name} onChange={handleNameChange} className="form-control" />
@@ -206,7 +206,7 @@ const Godnames = () => {
 
               </div>
               <div className="col-auto">
-                <CButton color="secondary" onClick={() => { setVisible(false); setPopupVisible(false); }}>Close</CButton>
+                <CButton color="secondary" onClick={() => { setVisible(false); setPopupVisible(false); setName(''); }}>Close</CButton>
               </div>
             </div>
           </form>
