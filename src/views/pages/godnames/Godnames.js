@@ -30,6 +30,7 @@ const Godnames = () => {
   const [popupVisibleDelete, setPopupVisibleDelete] = useState(false);
   const [pagesize,setPagesize] = useState(5);
   const [paginationLinks, setPaginationLinks] = useState([]);
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     fetchData();
@@ -105,14 +106,25 @@ const Godnames = () => {
     setName(e.target.value);
   };
 
+  const validateForm = () => {
+    const newErrors = {};
+    if (!name) newErrors.name = "Name is required";
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     try {
       const headers = { 'Content-Type': 'application/json' };
-      if (editID) {
+      if (editID) 
+      {
         await axios.post(`http://localhost:8000/api/update_godnames/${editID}`, { name }, { headers });
         fetchData();
-      } else {
+      } 
+      else 
+      {
+        setName('');
         await axios.post(`http://localhost:8000/api/add_godnames`, { name }, { headers });
         fetchData();
       }
@@ -166,7 +178,6 @@ const Godnames = () => {
           </CTableBody>
         </CTable>
       )}
-
           <div style={{margin:'20px'}}>
             {/* Render pagination links */}
             {paginationLinks.map((link, index) => (
@@ -187,21 +198,27 @@ const Godnames = () => {
         aria-labelledby="AddNameModal"
       >
         <CModalHeader closeButton>
-          <CModalTitle id="AddNameModal">Add GodName</CModalTitle>
+          <CModalTitle id="AddNameModal">Add GodName</CModalTitle> 
         </CModalHeader>
         <CModalBody>
           <form  onSubmit={handleFormSubmit}>
-            <label>
-              Name:
-              <input type="text" value={name} onChange={handleNameChange} className="form-control" />
-            </label>
+          <label>
+            Name:
+            <input
+              type="text"
+              value={name}
+              onChange={handleNameChange}
+              className="form-control"
+            />
+            {errors.name && <div className="text-danger">{errors.name}</div>}
+          </label>
             <div className="row justify-content-end mt-3">
               <div className="col-auto">
               <CButton type="submit" style={{backgroundColor:'rgb(102 16 242 / 41%)'}}>{editID ? 'Save' : 'Submit'}</CButton>
 
               </div>
               <div className="col-auto">
-                <CButton color="secondary" onClick={() => { setVisible(false); setPopupVisible(false); }}>Close</CButton>
+                <CButton color="secondary" onClick={() => { setVisible(false); setPopupVisible(false); setName(''); }}>Close</CButton>
               </div>
             </div>
           </form>

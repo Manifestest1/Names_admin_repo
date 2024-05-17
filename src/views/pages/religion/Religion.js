@@ -208,7 +208,7 @@ const Religion = () => {
 
               </div>
               <div className="col-auto">
-                <CButton color="secondary" onClick={() => { setVisible(false); setPopupVisible(false); }}>Close</CButton>
+                <CButton color="secondary" onClick={() => { setVisible(false); setPopupVisible(false);setReligion(''); }}>Close</CButton>
               </div>
             </div>
           </form>

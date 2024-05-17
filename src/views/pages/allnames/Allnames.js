@@ -23,6 +23,7 @@ const Allnames = () => {
   const [visibleDelete, setVisibleDelete] = useState(false);
   const [religions, setReligions] = useState([]);
   const [selectedReligion, setSelectedReligion] = useState('');
+  const [selectedReligionName, setSelectedReligionName] = useState('');
   const [gender, setGender] = useState([]);
   const [selectedGender, setSelectedGender] = useState('');
   const [name, setName] = useState('');
@@ -37,9 +38,14 @@ const Allnames = () => {
   const [popupVisibleDelete, setPopupVisibleDelete] = useState(false);
   const [pagesize,setPagesize] = useState(5);
   const [paginationLinks, setPaginationLinks] = useState([]);
+  const [errors, setErrors] = useState({});
+  
 
   useEffect(() => {
     fetchData();
+  }, []);
+
+  useEffect(() => {
     fetchReligions();
   }, []);
 
@@ -63,7 +69,7 @@ const Allnames = () => {
   const fetchReligions = async () => {
     try {
       const response = await axios.get('http://localhost:8000/api/show_religion');
-      setReligions(response.data); // Assuming the API returns an array of religions
+      setReligions(response.data,"all Rel"); // Assuming the API returns an array of religions
     } catch (error) {
       console.error('Error fetching religions:', error);
     }
@@ -114,10 +120,12 @@ const Allnames = () => {
 
   const handleEditButtonClick = (id) => {
     const itemToEdit = tableData.data.find(item => item.id === id);
+    console.log(itemToEdit,"Religin id");
     setName(itemToEdit.name);
     setDescription(itemToEdit.description); 
-    setSelectedReligion(itemToEdit.religion.id);
+    setSelectedReligion(itemToEdit.religion_id);
     setSelectedGender(itemToEdit.gender);
+    setSelectedReligionName(itemToEdit.religion);
     setEditID(id);
     setVisible(true);
   };
@@ -129,6 +137,7 @@ const Allnames = () => {
     setSelectedReligion('');
     setSelectedGender('');
     setEditID(null);
+    setErrors({});
   };
 
   const handleNameChange = (e) => {
@@ -146,15 +155,27 @@ const Allnames = () => {
   const handleGenderChange = (e) => {
     setSelectedGender(e.target.value);
   };
+  
+  const validateForm = () => {
+    const newErrors = {};
+    if (!name) newErrors.name = "Name is required";
+    if (!selectedGender) newErrors.gender = "Gender is required";
+    if (!selectedReligion) newErrors.religion = "Religion is required";
+    if (!description) newErrors.description = "Description is required";
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
+    if (!validateForm()) return;
     try {
       const headers = { 'Content-Type': 'application/json' };
       if (editID) {
         await axios.post(`http://localhost:8000/api/update_names/${editID}`, { name, description, religion: selectedReligion, gender: selectedGender  }, { headers });
 
-      } else {
+      } 
+      else {
         await axios.post(`http://localhost:8000/api/add_names`, { name, description, religion: selectedReligion, gender: selectedGender  }, { headers });
       }
       fetchData();
@@ -165,10 +186,9 @@ const Allnames = () => {
       setSelectedGender('');
       setEditID(null);
     } catch (error) {
-      console.error('Error updating name:', error);
+      console.error('Error updating name:', error.response.data);
     }
   };
-  
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
   };
@@ -234,57 +254,62 @@ const Allnames = () => {
         aria-labelledby="AddNameModal"
       >
         <CModalHeader closeButton>
-          <CModalTitle id="AddNameModal">Add Name</CModalTitle>
+          <CModalTitle id="AddNameModal">{editID ? 'Edit Name' : 'Add Name'}</CModalTitle>
         </CModalHeader>
         <CModalBody>
           <form id='forms' onSubmit={handleFormSubmit}>
-          <label>
-              Name:
+          <label>Name:</label>
               <input type="text" value={name} onChange={handleNameChange} className="form-control" />
-            </label><br /><br />
-
-            <label>
-              Gender:
-              <CDropdown>
-                <CDropdownToggle color="secondary">
+              {errors.name && <div className="text-danger">{errors.name}</div>}
+            <br /><br />
+            <label>Gender:</label><br></br>
+              <CDropdown className="col-md-12 form-control">
+                <CDropdownToggle style = {{textAlign:"left"}}>
                   {selectedGender ? selectedGender : 'Select a gender'}
-                </CDropdownToggle>
-                <CDropdownMenu>
+               
+                  <CDropdownMenu >
                   <CDropdownItem onClick={() => setSelectedGender('male')}>Male</CDropdownItem>
                   <CDropdownItem onClick={() => setSelectedGender('female')}>Female</CDropdownItem>
                   <CDropdownItem onClick={() => setSelectedGender('unisex')}>Unisex</CDropdownItem>
                 </CDropdownMenu>
-              </CDropdown>
-            </label><br /><br />
-            
-            <label>
-              Religion:
-              <CDropdown>
-                <CDropdownToggle color="secondary">
-                {selectedReligion && religions.find(religion => religion.id === selectedReligion) ? (religions.find(religion => religion.id === selectedReligion)?.religion || 'Select a religion') : 'Select a religion'}
                 </CDropdownToggle>
-                <CDropdownMenu>
-                  {religions.map((religion) => (
-                    <CDropdownItem  onClick={() => setSelectedReligion(religion.id)}>
-                      {religion.religion}
-                    </CDropdownItem>
-                  ))}
-                </CDropdownMenu>
               </CDropdown>
-            </label><br />
-
+              {errors.gender && <div className="text-danger">{errors.gender}</div>}
+            <br /><br />
+            <label>Religion:</label>
+            <CDropdown className="col-md-12 form-control">
+              <CDropdownToggle style={{ textAlign: "left" }}>
+                {selectedReligion ? selectedReligionName : 'Select a religion'}
+              </CDropdownToggle>
+              <CDropdownMenu>
+                {religions.map((religion) => (
+                  <CDropdownItem
+                    key={religion.id}
+                    onClick={() => {
+                      setSelectedReligion(religion.id); // Set the selected religion ID
+                      setSelectedReligionName(religion.religion); // Set the selected religion name
+                    }}
+                  >
+                    {religion.religion}
+                  </CDropdownItem>
+                ))}
+              </CDropdownMenu>
+            </CDropdown>
+            {errors.religion  && <div className="text-danger">{errors.religion}</div>}
+            <br />
             
-            <label>
-              Description:
+
+            <label> Description:</label>
               <input type="text" value={description} onChange={handleDescriptionChange} className="form-control" />
-            </label>
+              {errors.description && <div className="text-danger">{errors.description}</div>}
+            
             <div className="row justify-content-end mt-3">
               <div className="col-auto">
               <CButton type="submit" style={{backgroundColor:'rgb(102 16 242 / 41%)'}}>{editID ? 'Save' : 'Submit'}</CButton>
 
               </div>
               <div className="col-auto">
-                <CButton color="secondary" onClick={() => { setVisible(false); setPopupVisible(false); }}>Close</CButton>
+                <CButton color="secondary" onClick={() => { setVisible(false); setPopupVisible(false);setName('');setDescription('');setSelectedReligion('');setSelectedGender(''); }}>Close</CButton>
               </div>
             </div>
           </form>
