@@ -62,65 +62,65 @@ const AllNamesOfGod = () => {
 
   return (
     <>
-      <h1>{godname} Ji  Names</h1>
-      <div className="d-flex mt-4">
-        <input
-          type="text"
-          placeholder="Search..."
-          className="form-control"
-          value={searchQuery}
-          onChange={handleSearchChange}
-        />
-        <CButton color="secondary" className="ml-2" onClick={() => setVisible(true)}>Add</CButton>
-      </div>
-
-      {isLoading ? (
-        <p>Loading...</p>
-      ) : (
-        <CTable striped className="table mt-4">
-          <CTableHead>
-            <CTableRow>
-              <CTableHeaderCell scope="col">Serial No.</CTableHeaderCell>
-              <CTableHeaderCell scope="col">{godname} Ji Names</CTableHeaderCell>
-            </CTableRow>
-          </CTableHead>
-          <CTableBody>
-            {filteredData.map((subGod, index) => (
-              <CTableRow key={subGod.id}>
-                <CTableHeaderCell scope="row">{calculateSerialNumber(index)}</CTableHeaderCell>
-                <CTableDataCell>{subGod.subgodname}</CTableDataCell>
-              </CTableRow>
-            ))}
-          </CTableBody>
-        </CTable>
-      )}
-      <div id='god-3'>
-        {paginationLinks.map((link, index) => (
-          <CButton
-            key={index}
-            onClick={() => handlePageClick(link.url)}
-            disabled={!link.url}
-          >
-            {link.label.replace('&laquo;', '').replace('&raquo;', '')}
-          </CButton>
-        ))}
-      </div>
-      
-      {visible && (
-        <div className="modal">
-          <div className="modal-content">
-            <h2>Add Sub God Name</h2>
-            <input
-              type="text"
-              placeholder="Sub God Name"
-              value={newSubGodName}
-              onChange={(e) => setNewSubGodName(e.target.value)}
-            />
-            <CButton color="primary" onClick={handleAddSubGodName}>Add</CButton>
-            <CButton color="secondary" onClick={() => setVisible(false)}>Cancel</CButton>
-          </div>
+        <h1>{godname} Ji  Names</h1>
+        <div className="d-flex mt-4">
+          <input
+            type="text"
+            placeholder="Search..."
+            className="form-control"
+            value={searchQuery}
+            onChange={handleSearchChange}
+          />
+          <CButton color="secondary" className="ml-2" onClick={() => setVisible(true)}>Add</CButton>
         </div>
-      )}
+
+        {isLoading ? (
+            <p>Loading...</p>
+        ) : (
+            <CTable striped className="table mt-4">
+              <CTableHead>
+                <CTableRow>
+                  <CTableHeaderCell scope="col">Serial No.</CTableHeaderCell>
+                  <CTableHeaderCell scope="col">{godname} Ji Names</CTableHeaderCell>
+                </CTableRow>
+              </CTableHead>
+              <CTableBody>
+                {filteredData.map((subGod, index) => (
+                  <CTableRow key={subGod.id}>
+                    <CTableHeaderCell scope="row">{calculateSerialNumber(index)}</CTableHeaderCell>
+                    <CTableDataCell>{subGod.subgodname}</CTableDataCell>
+                  </CTableRow>
+                ))}
+              </CTableBody>
+            </CTable>
+        )}
+        <div id='god-3'>
+            {paginationLinks.map((link, index) => (
+              <CButton
+                key={index}
+                onClick={() => handlePageClick(link.url)}
+                disabled={!link.url}
+              >
+                {link.label.replace('&laquo;', '').replace('&raquo;', '')}
+              </CButton>
+            ))}
+        </div>
+        
+        {visible && (
+            <div className="modal">
+              <div className="modal-content">
+                <h2>Add Sub God Name</h2>
+                <input
+                  type="text"
+                  placeholder="Sub God Name"
+                  value={newSubGodName}
+                  onChange={(e) => setNewSubGodName(e.target.value)}
+                />
+                <CButton color="primary" onClick={handleAddSubGodName}>Add</CButton>
+                <CButton color="secondary" onClick={() => setVisible(false)}>Cancel</CButton>
+              </div>
+            </div>
+        )}
     </>
   );
 };

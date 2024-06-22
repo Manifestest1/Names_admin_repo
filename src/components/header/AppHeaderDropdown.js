@@ -12,33 +12,35 @@ import { cilAccountLogout } from '@coreui/icons';
 import CIcon from '@coreui/icons-react';
 import mypic from './../../assets/images/avatars/mypic.png';
 
-const AppHeaderDropdown = () => {
-  const [logoutSuccess, setLogoutSuccess] = useState(false);
+const AppHeaderDropdown =() => {
   const navigate = useNavigate();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     const token = localStorage.getItem('_token');
     if (!token) {
       console.error("Token not found");
       navigate("/login");
       return;
     }
-  
-    let headers = {
+
+    const headers = {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
     };
-  
-    axios.post('http://localhost:8000/api/auth/logout', null, { headers })
-      .then((r) => {
+
+    try {
+      await axios.post('http://localhost:8000/api/auth/logout', null, { headers });
+      localStorage.removeItem('_token');
+      navigate("/login");
+    } catch (error) {
+      if (error.response && error.response.status === 401) {
+        console.error("Unauthorized: Token might be invalid or expired");
         localStorage.removeItem('_token');
-        setLogoutSuccess(true);
         navigate("/login");
-      })
-      .catch((error) => {
+      } else {
         console.error('Error during logout:', error);
-        // Handle specific errors (e.g., 401) here
-      });
+      }
+    }
   };
 
   useEffect(() => {
@@ -47,7 +49,7 @@ const AppHeaderDropdown = () => {
       console.error("Token not found");
       navigate("/login");
     }
-  }, []);
+  }, [navigate]);
   
 
   return (

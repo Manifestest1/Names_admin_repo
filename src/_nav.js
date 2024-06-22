@@ -43,7 +43,7 @@ const _nav = [
 
   {
     component: CNavItem,
-    name: 'All Names',
+    name: 'Names',
     to: '/allnames',
     // Add other properties as needed
   }

@@ -13,6 +13,7 @@ import {
   CTableBody, 
   CTableDataCell,
 } from '@coreui/react';
+import { NavLink } from 'react-router-dom';
 
 const Godnames = () => {
   const [visible, setVisible] = useState(false);
@@ -100,6 +101,7 @@ const Godnames = () => {
     setVisible(false);
     setName('');
     setEditID(null);
+    setErrors({});
   };
 
   const handleNameChange = (e) => {
@@ -108,13 +110,15 @@ const Godnames = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!name) newErrors.name = "Name is required";
+    if (!name.trim()) newErrors.godname = "Name is required";
     setErrors(newErrors);
+    // Return true if there are no errors
     return Object.keys(newErrors).length === 0;
   };
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
+    if (!validateForm()) return;
     try {
       const headers = { 'Content-Type': 'application/json' };
       if (editID) 
@@ -124,13 +128,14 @@ const Godnames = () => {
       } 
       else 
       {
-        setName('');
         await axios.post(`http://localhost:8000/api/add_godnames`, { name }, { headers });
         fetchData();
       }
       setVisible(false);
       setName('');
       setEditID(null);
+      setErrors({}); 
+      
     } catch (error) {
       console.error('Error updating name:', error);
     }
@@ -145,9 +150,9 @@ const Godnames = () => {
   : [];
   return (
     <>
-      <h1>GodName</h1>
+      <h1>God Names</h1>
       <div className="d-flex mt-4">
-        <input type="text" placeholder="Search..." className="form-control" style={{ marginRight: '15px' }} value={searchQuery} onChange={handleSearchChange} />
+        <input type="text" placeholder="Search..." className="form-control" id='god-1' value={searchQuery} onChange={handleSearchChange} />
         <CButton color="secondary" className="ml-2" onClick={() => setVisible(true)}>Add</CButton>
       </div>
 
@@ -158,7 +163,7 @@ const Godnames = () => {
           <CTableHead>
             <CTableRow>
               <CTableHeaderCell scope="col">Serial No.</CTableHeaderCell>
-              <CTableHeaderCell scope="col">GodName</CTableHeaderCell>
+              <CTableHeaderCell scope="col">God Names</CTableHeaderCell>
               <CTableHeaderCell scope="col">Action</CTableHeaderCell>
             </CTableRow>
           </CTableHead>
@@ -166,9 +171,11 @@ const Godnames = () => {
           {filteredData.map((data, index) => (
               <CTableRow key={data.id}>
                 <CTableHeaderCell scope="row">{calculateSerialNumber(index)}</CTableHeaderCell>
-                <CTableDataCell>{data.godname}</CTableDataCell>
                 <CTableDataCell>
-                  <CButton style={{marginRight:'20px',backgroundColor:'rgb(102 16 242 / 41%)'}} className="mr-2" onClick={() => handleEditButtonClick(data.id)}>Edit</CButton>
+                <NavLink to={`/allnamesofgod/${data.id}?godname=${encodeURIComponent(data.godname)}`}>{data.godname}</NavLink>
+                </CTableDataCell>
+                <CTableDataCell>
+                  <CButton id='god-2' className="mr-2" onClick={() => handleEditButtonClick(data.id)}>Edit</CButton>
                   <CButton color="secondary" onClick={() => deleteData(data.id)}>Delete</CButton>
                 </CTableDataCell>
               </CTableRow>
@@ -178,7 +185,7 @@ const Godnames = () => {
           </CTableBody>
         </CTable>
       )}
-          <div style={{margin:'20px'}}>
+          <div id='god-3'>
             {/* Render pagination links */}
             {paginationLinks.map((link, index) => (
               <CButton
@@ -198,7 +205,7 @@ const Godnames = () => {
         aria-labelledby="AddNameModal"
       >
         <CModalHeader closeButton>
-          <CModalTitle id="AddNameModal">Add GodName</CModalTitle> 
+          <CModalTitle id="AddNameModal">Add God Names</CModalTitle> 
         </CModalHeader>
         <CModalBody>
           <form  onSubmit={handleFormSubmit}>
@@ -208,13 +215,13 @@ const Godnames = () => {
               type="text"
               value={name}
               onChange={handleNameChange}
-              className="form-control"
+              className={`form-control ${errors.godname ? 'is-invalid' : ''}`}
             />
-            {errors.name && <div className="text-danger">{errors.name}</div>}
+            {errors.godname && <div className="text-danger">{errors.godname}</div>}
           </label>
             <div className="row justify-content-end mt-3">
               <div className="col-auto">
-              <CButton type="submit" style={{backgroundColor:'rgb(102 16 242 / 41%)'}}>{editID ? 'Save' : 'Submit'}</CButton>
+              <CButton type="submit" id='god-4'>{editID ? 'Save' : 'Submit'}</CButton>
 
               </div>
               <div className="col-auto">
@@ -237,7 +244,7 @@ const Godnames = () => {
           <p>Are you sure you want to delete?</p>
           <div className="row justify-content-end mt-3">
             <div className="col-auto">
-              <CButton onClick={handleDeleteConfirmation} style={{ backgroundColor: 'rgb(102 16 242 / 41%)' }}>Delete</CButton>
+              <CButton onClick={handleDeleteConfirmation} id='god-5'>Delete</CButton>
             </div>
             <div className="col-auto">
               <CButton color="secondary" onClick={() => { setVisibleDelete(false); setPopupVisibleDelete(false); }}>Close</CButton>

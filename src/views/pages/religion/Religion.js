@@ -13,6 +13,7 @@ import {
   CTableBody, 
   CTableDataCell,
 } from '@coreui/react';
+import '../../../scss/_custom.scss'
 
 const Religion = () => {
   const [visible, setVisible] = useState(false);
@@ -30,14 +31,12 @@ const Religion = () => {
   const [popupVisibleDelete, setPopupVisibleDelete] = useState(false);
   const [pagesize,setPagesize] = useState(5);
   const [paginationLinks, setPaginationLinks] = useState([]);
+  const [errors, setErrors] = useState({});
+  
 
   useEffect(() => {
     fetchData();
-  }, []);
- 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  }, [pagesize]);
 
   const fetchData = async () => {
     try {
@@ -46,7 +45,7 @@ const Religion = () => {
       setTableData(response.data);
       setPaginationLinks(response.data.links);
       setIsLoading(false);
-      console.log(response.data,"Godname Links")
+      console.log(response.data,"Religion Links")
       setSerialNumbers(Array.from({ length: response.data.length }, (_, index) => index + 1));
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -104,16 +103,25 @@ const Religion = () => {
 
   const handleFormClose = () => {
     setVisible(false);
-    setName('');
+    setReligion('');
     setEditID(null);
+    setErrors({});
   };
 
   const handleNameChange = (e) => {
     setReligion(e.target.value);
   };
 
+  const validateForm = () => {
+    const newErrors = {};
+    if (!religion) newErrors.religion = "Religion is required";
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleFormSubmit = async (e) => {
     e.preventDefault();
+    if (!validateForm()) return;
     try {
       const headers = { 'Content-Type': 'application/json' };
       if (editID) {
@@ -126,6 +134,7 @@ const Religion = () => {
       setVisible(false);
       setReligion('');
       setEditID(null);
+      setErrors({}); 
     } catch (error) {
       console.error('Error updating religion:', error);
     }
@@ -142,7 +151,7 @@ const Religion = () => {
     <>
       <h1>Religion</h1>
       <div className="d-flex mt-4">
-        <input type="text" placeholder="Search..." className="form-control" style={{ marginRight: '15px' }} value={searchQuery} onChange={handleSearchChange} />
+        <input type="text" placeholder="Search..." className="form-control" id='religion-1' value={searchQuery} onChange={handleSearchChange} />
         <CButton color="secondary" className="ml-2" onClick={() => setVisible(true)}>Add</CButton>
       </div>
 
@@ -163,7 +172,7 @@ const Religion = () => {
                 <CTableHeaderCell scope="row">{calculateSerialNumber(index)}</CTableHeaderCell>
                 <CTableDataCell>{data.religion}</CTableDataCell>
                 <CTableDataCell>
-                  <CButton style={{marginRight:'20px',backgroundColor:'rgb(102 16 242 / 41%)'}} className="mr-2" onClick={() => handleEditButtonClick(data.id)}>Edit</CButton>
+                  <CButton id='religion-2' className="mr-2" onClick={() => handleEditButtonClick(data.id)}>Edit</CButton>
                   <CButton color="secondary" onClick={() => deleteData(data.id)}>Delete</CButton>
                 </CTableDataCell>
               </CTableRow>
@@ -174,7 +183,7 @@ const Religion = () => {
         </CTable>
       )}
 
-          <div style={{margin:'20px'}}>
+          <div id='religion-3'>
             {/* Render pagination links */}
             {paginationLinks.map((link, index) => (
               <CButton
@@ -201,14 +210,15 @@ const Religion = () => {
             <label>
               Religion:
               <input type="text" value={religion} onChange={handleNameChange} className="form-control" />
+              {errors.religion  && <div className="text-danger">{errors.religion}</div>}
             </label>
             <div className="row justify-content-end mt-3">
               <div className="col-auto">
-              <CButton type="submit" style={{backgroundColor:'rgb(102 16 242 / 41%)'}}>{editID ? 'Save' : 'Submit'}</CButton>
+              <CButton type="submit" id='religion-4'>{editID ? 'Save' : 'Submit'}</CButton>
 
               </div>
               <div className="col-auto">
-                <CButton color="secondary" onClick={() => { setVisible(false); setPopupVisible(false);setReligion(''); }}>Close</CButton>
+                <CButton color="secondary" onClick={() => { setVisible(false); setPopupVisible(false); }}>Close</CButton>
               </div>
             </div>
           </form>
@@ -227,7 +237,7 @@ const Religion = () => {
           <p>Are you sure you want to delete?</p>
           <div className="row justify-content-end mt-3">
             <div className="col-auto">
-              <CButton onClick={handleDeleteConfirmation} style={{ backgroundColor: 'rgb(102 16 242 / 41%)' }}>Delete</CButton>
+              <CButton onClick={handleDeleteConfirmation} id='religion-5'>Delete</CButton>
             </div>
             <div className="col-auto">
               <CButton color="secondary" onClick={() => { setVisibleDelete(false); setPopupVisibleDelete(false); }}>Close</CButton>

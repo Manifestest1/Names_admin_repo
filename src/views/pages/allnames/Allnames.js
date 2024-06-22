@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import axios from 'axios';
 import {
   CButton,
@@ -6,11 +6,11 @@ import {
   CModalHeader,
   CModalTitle,
   CModalBody,
-  CTable, 
+  CTable,
   CTableHead,
-  CTableRow, 
-  CTableHeaderCell, 
-  CTableBody, 
+  CTableRow,
+  CTableHeaderCell,
+  CTableBody,
   CTableDataCell,
   CDropdown,
   CDropdownToggle,
@@ -19,6 +19,7 @@ import {
 } from '@coreui/react';
 
 const Allnames = () => {
+  const inputRef = useRef(null);
   const [visible, setVisible] = useState(false);
   const [visibleDelete, setVisibleDelete] = useState(false);
   const [religions, setReligions] = useState([]);
@@ -36,17 +37,29 @@ const Allnames = () => {
   const [description, setDescription] = useState([]);
   const [popupVisible, setPopupVisible] = useState(false);
   const [popupVisibleDelete, setPopupVisibleDelete] = useState(false);
-  const [pagesize,setPagesize] = useState(5);
+  const [pagesize, setPagesize] = useState(5);
   const [paginationLinks, setPaginationLinks] = useState([]);
   const [errors, setErrors] = useState({});
-  
 
   useEffect(() => {
     fetchData();
+    fetchReligions();
   }, []);
 
   useEffect(() => {
-    fetchReligions();
+    if (visible || popupVisible) {
+      setTimeout(() => {
+        if (inputRef.current) {
+          inputRef.current.focus();
+        }
+      }, 300); // Delay to ensure modal is rendered
+    }
+  }, [visible, popupVisible]);
+
+  const setInputRef = useCallback((node) => {
+    if (node !== null) {
+      inputRef.current = node;
+    }
   }, []);
 
   const fetchData = async () => {
@@ -56,7 +69,7 @@ const Allnames = () => {
       setTableData(response.data); // Assuming response.data contains the table data
       setPaginationLinks(response.data.links);
       setIsLoading(false);
-      console.log(response.data,"Pagination List");
+      console.log(response.data, "Pagination List");
       // Update serial numbers based on the number of users
       setSerialNumbers(Array.from({ length: response.data.length }, (_, index) => index + 1));
     } catch (error) {
@@ -69,7 +82,7 @@ const Allnames = () => {
   const fetchReligions = async () => {
     try {
       const response = await axios.get('http://localhost:8000/api/show_religion');
-      setReligions(response.data,"all Rel"); // Assuming the API returns an array of religions
+      setReligions(response.data, "all Rel"); // Assuming the API returns an array of religions
     } catch (error) {
       console.error('Error fetching religions:', error);
     }
@@ -89,8 +102,8 @@ const Allnames = () => {
     }
   };
 
-   // Calculate serial number based on current page and items per page
-   const calculateSerialNumber = (index) => {
+  // Calculate serial number based on current page and items per page
+  const calculateSerialNumber = (index) => {
     const currentPage = tableData.current_page;
     const itemsPerPage = tableData.per_page;
     return (currentPage - 1) * itemsPerPage + index + 1;
@@ -101,7 +114,7 @@ const Allnames = () => {
     setEditID(idToDelete);
     setPopupVisibleDelete(true);
   };
-  
+
   const handleDeleteConfirmation = async () => {
     try {
       const headers = { 'Content-Type': 'application/json' };
@@ -120,9 +133,9 @@ const Allnames = () => {
 
   const handleEditButtonClick = (id) => {
     const itemToEdit = tableData.data.find(item => item.id === id);
-    console.log(itemToEdit,"Religin id");
+    console.log(itemToEdit, "Religin id");
     setName(itemToEdit.name);
-    setDescription(itemToEdit.description); 
+    setDescription(itemToEdit.description);
     setSelectedReligion(itemToEdit.religion_id);
     setSelectedGender(itemToEdit.gender);
     setSelectedReligionName(itemToEdit.religion);
@@ -155,7 +168,7 @@ const Allnames = () => {
   const handleGenderChange = (e) => {
     setSelectedGender(e.target.value);
   };
-  
+
   const validateForm = () => {
     const newErrors = {};
     if (!name) newErrors.name = "Name is required";
@@ -172,11 +185,11 @@ const Allnames = () => {
     try {
       const headers = { 'Content-Type': 'application/json' };
       if (editID) {
-        await axios.post(`http://localhost:8000/api/update_names/${editID}`, { name, description, religion: selectedReligion, gender: selectedGender  }, { headers });
+        await axios.post(`http://localhost:8000/api/update_names/${editID}`, { name, description, religion: selectedReligion, gender: selectedGender }, { headers });
 
-      } 
+      }
       else {
-        await axios.post(`http://localhost:8000/api/add_names`, { name, description, religion: selectedReligion, gender: selectedGender  }, { headers });
+        await axios.post(`http://localhost:8000/api/add_names`, { name, description, religion: selectedReligion, gender: selectedGender }, { headers });
       }
       fetchData();
       setVisible(false);
@@ -185,6 +198,7 @@ const Allnames = () => {
       setSelectedReligion('');
       setSelectedGender('');
       setEditID(null);
+      setErrors({});
     } catch (error) {
       console.error('Error updating name:', error.response.data);
     }
@@ -196,11 +210,12 @@ const Allnames = () => {
 
   return (
     <>
-      <h1>Name</h1>
+      <h1>Names</h1>
       <div className="d-flex mt-4">
-        <input type="text" placeholder="Search..." className="form-control" style={{ marginRight: '15px' }} value={searchQuery} onChange={handleSearchChange} />
-        <CButton color="secondary" className="ml-2" onClick={() => setVisible(true)}>Add</CButton>
+        <input type="text" placeholder="Search..." className="form-control" id='name-1' value={searchQuery} onChange={handleSearchChange} />
+        <CButton color="secondary" className="ml-2" onClick={() => { setVisible(true); setEditID(null); setPopupVisible(false); setPopupVisibleDelete(false); }}>Add</CButton>
       </div>
+
 
       {isLoading ? (
         <p>Loading...</p>
@@ -209,7 +224,7 @@ const Allnames = () => {
           <CTableHead>
             <CTableRow>
               <CTableHeaderCell scope="col">Serial No.</CTableHeaderCell>
-              <CTableHeaderCell scope="col">Name</CTableHeaderCell>
+              <CTableHeaderCell scope="col">Names</CTableHeaderCell>
               <CTableHeaderCell scope="col">Description</CTableHeaderCell>
               <CTableHeaderCell scope="col">Religion</CTableHeaderCell>
               <CTableHeaderCell scope="col">Gender</CTableHeaderCell>
@@ -225,7 +240,7 @@ const Allnames = () => {
                 <CTableDataCell>{data.religion}</CTableDataCell>
                 <CTableDataCell>{data.gender}</CTableDataCell>
                 <CTableDataCell>
-                  <CButton style={{marginRight:'20px',backgroundColor:'rgb(102 16 242 / 41%)'}} className="mr-2" onClick={() => handleEditButtonClick(data.id)}>Edit</CButton>
+                  <CButton id='name-2' className="mr-2" onClick={() => handleEditButtonClick(data.id)}>Edit</CButton>
                   <CButton color="secondary" onClick={() => deleteData(data.id)}>Delete</CButton>
                 </CTableDataCell>
               </CTableRow>
@@ -234,7 +249,7 @@ const Allnames = () => {
         </CTable>
       )}
 
-      <div style={{margin:'20px'}}>
+      <div id='name-3'>
         {/* Render pagination links */}
         {paginationLinks.map((link, index) => (
           <CButton
@@ -258,54 +273,64 @@ const Allnames = () => {
         </CModalHeader>
         <CModalBody>
           <form id='forms' onSubmit={handleFormSubmit}>
-          <label>Name:</label>
-              <input type="text" value={name} onChange={handleNameChange} className="form-control" />
-              {errors.name && <div className="text-danger">{errors.name}</div>}
-            <br /><br />
-            <label>Gender:</label><br></br>
-              <CDropdown className="col-md-12 form-control">
-                <CDropdownToggle style = {{textAlign:"left"}}>
+            <label>Name:</label>
+            <input
+              type="text"
+              value={name}
+              onChange={handleNameChange}
+              className="form-control"
+              autoFocus
+              ref={setInputRef} // Assign the callback ref here
+            />
+            {errors.name && <div className="text-danger">{errors.name}</div>}
+            <div id='mt-1'>
+              <label>Gender:</label><br></br>
+              <CDropdown  className="col-md-12 form-control ">
+                <CDropdownToggle id='name-6'>
                   {selectedGender ? selectedGender : 'Select a gender'}
-               
+  
                   <CDropdownMenu >
-                  <CDropdownItem onClick={() => setSelectedGender('male')}>Male</CDropdownItem>
-                  <CDropdownItem onClick={() => setSelectedGender('female')}>Female</CDropdownItem>
-                  <CDropdownItem onClick={() => setSelectedGender('unisex')}>Unisex</CDropdownItem>
-                </CDropdownMenu>
+                    <CDropdownItem onClick={() => setSelectedGender('male')}>Male</CDropdownItem>
+                    <CDropdownItem onClick={() => setSelectedGender('female')}>Female</CDropdownItem>
+                    <CDropdownItem onClick={() => setSelectedGender('unisex')}>Unisex</CDropdownItem>
+                  </CDropdownMenu>
                 </CDropdownToggle>
               </CDropdown>
               {errors.gender && <div className="text-danger">{errors.gender}</div>}
-            <br /><br />
-            <label>Religion:</label>
-            <CDropdown className="col-md-12 form-control">
-              <CDropdownToggle style={{ textAlign: "left" }}>
-                {selectedReligion ? selectedReligionName : 'Select a religion'}
-              </CDropdownToggle>
-              <CDropdownMenu>
-                {religions.map((religion) => (
-                  <CDropdownItem
-                    key={religion.id}
-                    onClick={() => {
-                      setSelectedReligion(religion.id); // Set the selected religion ID
-                      setSelectedReligionName(religion.religion); // Set the selected religion name
-                    }}
-                  >
-                    {religion.religion}
-                  </CDropdownItem>
-                ))}
-              </CDropdownMenu>
-            </CDropdown>
-            {errors.religion  && <div className="text-danger">{errors.religion}</div>}
-            <br />
-            
+            </div>
+            <div id='mt-2'>
+              <label>Religion:</label>
+              <CDropdown className="col-md-12 form-control " >
+                <CDropdownToggle id='name-7'>
+                  {selectedReligion ? selectedReligionName : 'Select a religion'}
+                </CDropdownToggle>
+                <CDropdownMenu>
+                  {religions.map((religion) => (
+                    <CDropdownItem
+                      key={religion.id}
+                      onClick={() => {
+                        setSelectedReligion(religion.id); // Set the selected religion ID
+                        setSelectedReligionName(religion.religion); // Set the selected religion name
+                      }}
+                      id='name-8'
+                    >
+                      {religion.religion}
+                    </CDropdownItem>
+                  ))}
+                </CDropdownMenu>
+              </CDropdown>
+              {errors.religion && <div className="text-danger">{errors.religion}</div>}
+            </div>
 
-            <label> Description:</label>
-              <input type="text" value={description} onChange={handleDescriptionChange} className="form-control" />
+            <div id='mt-3'>
+              <label> Description:</label>
+              <input type="text" value={description} onChange={handleDescriptionChange} className="form-control " />
               {errors.description && <div className="text-danger">{errors.description}</div>}
-            
+            </div>
+
             <div className="row justify-content-end mt-3">
               <div className="col-auto">
-              <CButton type="submit" style={{backgroundColor:'rgb(102 16 242 / 41%)'}}>{editID ? 'Save' : 'Submit'}</CButton>
+                <CButton type="submit" id='name-4'>{editID ? 'Save' : 'Submit'}</CButton>
 
               </div>
               <div className="col-auto">
@@ -328,7 +353,7 @@ const Allnames = () => {
           <p>Are you sure you want to delete?</p>
           <div className="row justify-content-end mt-3">
             <div className="col-auto">
-              <CButton onClick={handleDeleteConfirmation} style={{ backgroundColor: 'rgb(102 16 242 / 41%)' }}>Delete</CButton>
+              <CButton onClick={handleDeleteConfirmation} id='name-5'>Delete</CButton>
             </div>
             <div className="col-auto">
               <CButton color="secondary" onClick={() => { setVisibleDelete(false); setPopupVisibleDelete(false); }}>Close</CButton>
