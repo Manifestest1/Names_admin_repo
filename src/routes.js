@@ -63,7 +63,7 @@ const routes = [
   { path: '/religion', name: 'Religion', element: Religion },
   // { path: '/godlnames', name: 'Godnames', element: Godnames },
   { path: '/godnames', name:'God Names', element: Godnames },
-  { path: '/allnamesofgod', name:'All Names Of God', element: AllNamesOfGod },
+  { path: '/allnamesofgod/:id', name: 'All Names Of God', element: AllNamesOfGod  },
   { path: '/theme', name: 'Theme', element: Colors, exact: true },
   { path: '/theme/colors', name: 'Colors', element: Colors },
   { path: '/theme/typography', name: 'Typography', element: Typography },

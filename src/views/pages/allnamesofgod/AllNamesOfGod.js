@@ -1,10 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios'; // Assuming you're using axios for HTTP requests
+import axios from 'axios';
 import { useParams, useLocation } from 'react-router-dom';
-import { CTable, CTableHead, CTableRow, CTableHeaderCell, CTableBody, CTableDataCell, CButton } from '@coreui/react';
+import {
+  CButton,
+  CModal,
+  CModalHeader,
+  CModalTitle,
+  CModalBody,
+  CTable,
+  CTableHead,
+  CTableRow,
+  CTableHeaderCell,
+  CTableBody,
+  CTableDataCell,
+} from '@coreui/react';
 
 const AllNamesOfGod = () => {
-  console.log('Component rendered');
   const { id } = useParams();
   const location = useLocation();
   const godname = new URLSearchParams(location.search).get('godname');
@@ -12,25 +23,31 @@ const AllNamesOfGod = () => {
   const [subGodNames, setSubGodNames] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [visible, setVisible] = useState(false);
+  const [visibleAdd, setVisibleAdd] = useState(false);
   const [newSubGodName, setNewSubGodName] = useState('');
   const [paginationLinks, setPaginationLinks] = useState([]);
-  
+  const [visibleDelete, setVisibleDelete] = useState(false);
+  const [popupVisibleDelete, setPopupVisibleDelete] = useState(false);
+
   useEffect(() => {
     const fetchSubGod = async () => {
+      setIsLoading(true); // Set loading state to true while fetching data
       try {
         const headers = { 'Content-Type': 'application/json' };
-        const response = await axios.get('http://localhost:8000/api/show_subgodnames', { headers });
+        const response = await axios.get(`http://localhost:8000/api/subgodindex/${id}`, { headers });
         setSubGodNames(response.data.data);
-      }
-      catch(error){
+        console.log(response.data.data);
+        setPaginationLinks(response.data.links);
+        setIsLoading(false); // Set loading state to false after data is fetched
+      } catch (error) {
         console.error('Error fetching sub god names:', error);
+        setIsLoading(false); // Set loading state to false on error
+        setSubGodNames([]); // Clear subGodNames in case of error
       }
-      setIsLoading(false);
     };
 
-    fetchSubGod();
-  }, [id]);
+    fetchSubGod(); // Call fetchSubGod function when component mounts or id parameter changes
+  }, [id]); // Depend on id parameter to refetch data when id changes
 
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
@@ -40,87 +57,133 @@ const AllNamesOfGod = () => {
     if (newSubGodName.trim() === '') return;
     try {
       const headers = { 'Content-Type': 'application/json' };
-      const response = await axios.post('http://localhost:8000/api/add_subgod_names', { name: newSubGodName }, { headers });
+      const response = await axios.post('http://localhost:8000/api/add_subgodname', { name: newSubGodName, god_id: id }, { headers });
       setSubGodNames([...subGodNames, response.data.name]);
       setNewSubGodName('');
-      setVisible(false);
-    }
-    catch(error) {
+      setVisibleAdd(false);
+    } catch (error) {
       console.error('Error adding sub god name:', error);
     }
   };
 
-  const filteredData = subGodNames.filter(subGod => 
+  const handleDeleteConfirmation = () => {
+    console.log('Delete confirmed');
+    setVisibleDelete(false);
+    setPopupVisibleDelete(false);
+  };
+
+  const handlePageClick = async (url) => {
+    try {
+      const headers = { 'Content-Type': 'application/json' };
+      const response = await axios.get(url, { headers });
+      setSubGodNames(response.data.data);
+      setPaginationLinks(response.data.links);
+    } catch (error) {
+      console.error('Error fetching paginated data:', error);
+    }
+  };
+
+  const filteredData = subGodNames.filter(subGod =>
     subGod.subgodname.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const calculateSerialNumber = (index) => index + 1;
 
-  const handlePageClick = (url) => {
-    // Handle pagination click
-  };
-
   return (
     <>
-        <h1>{godname} Ji  Names</h1>
-        <div className="d-flex mt-4">
+      <h1> Names of {godname}</h1>
+      <div className="d-flex mt-4">
+        <input
+          id="input"
+          type="text"
+          placeholder="Search..."
+          className="form-control"
+          value={searchQuery}
+          onChange={handleSearchChange}
+        />
+        <CButton color="secondary" className="ml-2" onClick={() => setVisibleAdd(true)}>Add</CButton>
+      </div>
+
+      {isLoading ? (
+        <p>Loading...</p>
+      ) : (
+        <CTable striped className="table mt-4">
+          <CTableHead>
+            <CTableRow>
+              <CTableHeaderCell scope="col">Serial No.</CTableHeaderCell>
+              <CTableHeaderCell scope="col"> Names of {godname}</CTableHeaderCell>
+            </CTableRow>
+          </CTableHead>
+          <CTableBody>
+            {filteredData.map((subGod, index) => (
+              <CTableRow key={subGod.id}>
+                <CTableHeaderCell scope="row">{calculateSerialNumber(index)}</CTableHeaderCell>
+                <CTableDataCell>{subGod.subgodname}</CTableDataCell>
+              </CTableRow>
+            ))}
+          </CTableBody>
+        </CTable>
+      )}
+
+      <div id='god-3'>
+        {paginationLinks.map((link, index) => (
+          <CButton
+            key={index}
+            onClick={() => handlePageClick(link.url)}
+            disabled={!link.url}
+          >
+            {link.label.replace('&laquo;', '').replace('&raquo;', '')}
+          </CButton>
+        ))}
+      </div>
+
+      <CModal
+        visible={visibleAdd}
+        onClose={() => setVisibleAdd(false)}
+        aria-labelledby="AddSubGodModal"
+      >
+        <CModalHeader closeButton>
+          <CModalTitle id="AddSubGodModal">Add Name of {godname}</CModalTitle>
+        </CModalHeader>
+        <CModalBody>
           <input
             type="text"
-            placeholder="Search..."
+            placeholder="Name"
+            value={newSubGodName}
+            onChange={(e) => setNewSubGodName(e.target.value)}
             className="form-control"
-            value={searchQuery}
-            onChange={handleSearchChange}
           />
-          <CButton color="secondary" className="ml-2" onClick={() => setVisible(true)}>Add</CButton>
-        </div>
-
-        {isLoading ? (
-            <p>Loading...</p>
-        ) : (
-            <CTable striped className="table mt-4">
-              <CTableHead>
-                <CTableRow>
-                  <CTableHeaderCell scope="col">Serial No.</CTableHeaderCell>
-                  <CTableHeaderCell scope="col">{godname} Ji Names</CTableHeaderCell>
-                </CTableRow>
-              </CTableHead>
-              <CTableBody>
-                {filteredData.map((subGod, index) => (
-                  <CTableRow key={subGod.id}>
-                    <CTableHeaderCell scope="row">{calculateSerialNumber(index)}</CTableHeaderCell>
-                    <CTableDataCell>{subGod.subgodname}</CTableDataCell>
-                  </CTableRow>
-                ))}
-              </CTableBody>
-            </CTable>
-        )}
-        <div id='god-3'>
-            {paginationLinks.map((link, index) => (
-              <CButton
-                key={index}
-                onClick={() => handlePageClick(link.url)}
-                disabled={!link.url}
-              >
-                {link.label.replace('&laquo;', '').replace('&raquo;', '')}
-              </CButton>
-            ))}
-        </div>
-        
-        {visible && (
-            <div className="modal">
-              <div className="modal-content">
-                <h2>Add Sub God Name</h2>
-                <input
-                  type="text"
-                  placeholder="Sub God Name"
-                  value={newSubGodName}
-                  onChange={(e) => setNewSubGodName(e.target.value)}
-                />
-                <CButton color="primary" onClick={handleAddSubGodName}>Add</CButton>
-                <CButton color="secondary" onClick={() => setVisible(false)}>Cancel</CButton>
-              </div>
+          <div className="row justify-content-end mt-3">
+            <div className="col-auto">
+              <CButton id="primary" onClick={handleAddSubGodName}>Add</CButton>
             </div>
-        )}
+            <div className="col-auto">
+              <CButton color="secondary" onClick={() => setVisibleAdd(false)}>Cancel</CButton>
+            </div>
+          </div>
+        </CModalBody>
+      </CModal>
+
+      <CModal
+        visible={visibleDelete || popupVisibleDelete} // Update visibility based on state
+        onClose={() => { setVisibleDelete(false); setPopupVisibleDelete(false); }} // Close modal on cancel button click
+        aria-labelledby="DeleteConfirmationModal"
+      >
+        <CModalHeader closeButton>
+          <CModalTitle id="DeleteConfirmationModal">Delete</CModalTitle>
+        </CModalHeader>
+        <CModalBody>
+          <p>Are you sure you want to delete?</p>
+          <div className="row justify-content-end mt-3">
+            <div className="col-auto">
+              <CButton onClick={handleDeleteConfirmation} id='god-5'>Delete</CButton>
+            </div>
+            <div className="col-auto">
+              <CButton color="secondary" onClick={() => { setVisibleDelete(false); setPopupVisibleDelete(false); }}>Close</CButton>
+            </div>
+          </div>
+        </CModalBody>
+      </CModal>
     </>
   );
 };
