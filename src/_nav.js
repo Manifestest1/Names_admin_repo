@@ -36,8 +36,8 @@ const _nav = [
 
   {
     component: CNavItem,
-    name: 'Religion',
-    to: '/religion',
+    name: 'Nick Names',
+    to: '/nick-names',
     // Add other properties as needed
   },
 
@@ -46,7 +46,16 @@ const _nav = [
     name: 'Names',
     to: '/allnames',
     // Add other properties as needed
+  },
+
+  {
+    component: CNavItem,
+    name: 'Religion',
+    to: '/religion',
+    // Add other properties as needed
   }
+
+
 ]
 
 export default _nav
